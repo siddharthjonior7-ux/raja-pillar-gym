@@ -1,0 +1,9 @@
+project_id = "pillar-fitness"
+
+# Called by the app with the logged-in user's token. Supabase checks the token first.
+[functions.send-whatsapp]
+verify_jwt = true
+
+# Called by the scheduler with its own secret header (x-cron-secret), not a user token.
+[functions.whatsapp-auto]
+verify_jwt = false
