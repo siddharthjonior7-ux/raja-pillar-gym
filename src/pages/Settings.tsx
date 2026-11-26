@@ -146,7 +146,7 @@ function PlansTab() {
 function StaffTab() {
   const { profile } = useAuth()
   const toast = useToast()
-  const [f, setF] = useState({ name: '', email: '', phone: '', role: 'receptionist' })
+  const [f, setF] = useState({ name: '', email: '', role: 'receptionist' })
   const [busy, setBusy] = useState(false)
   const { data, loading, error, reload } = useAsync(async () => {
     const [p, i] = await Promise.all([supabase.from('profiles').select('*').order('created_at'), supabase.from('staff_invites').select('*').is('claimed_by', null).order('created_at')])
@@ -156,8 +156,8 @@ function StaffTab() {
   async function invite() {
     setBusy(true)
     try {
-      await rpc('invite_staff', { p_name: f.name, p_email: f.email, p_phone: f.phone, p_role: f.role })
-      toast('Staff member added. They can now sign in with that mobile number or email.'); setF({ name: '', email: '', phone: '', role: 'receptionist' }); reload()
+      await rpc('invite_staff', { p_name: f.name, p_email: f.email, p_phone: null, p_role: f.role })
+      toast('Staff member added. They can now create an account with that email.'); setF({ name: '', email: '', role: 'receptionist' }); reload()
     } catch (e) { toast(errMsg(e), 'error') }
     setBusy(false)
   }
@@ -170,14 +170,13 @@ function StaffTab() {
     <div className="stack" style={{ maxWidth: 820 }}>
       <section className="card stack">
         <h3>Add staff</h3>
-        <p className="muted sm-text">Enter the mobile number or email the person will sign in with. Only people added here can open the app.</p>
+        <p className="muted sm-text">Enter the email the person will sign in with. Only people added here can open the app.</p>
         <div className="form-grid">
           <Field label="Name"><input className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
           <Field label="Role"><select className="input" value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })}><option value="receptionist">Receptionist</option><option value="owner">Owner</option></select></Field>
-          <Field label="Mobile number"><input className="input" inputMode="numeric" value={f.phone} onChange={(e) => setF({ ...f, phone: cleanPhone(e.target.value) })} /></Field>
-          <Field label="Email"><input className="input" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
+          <div className="full"><Field label="Email"><input className="input" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field></div>
         </div>
-        <div><button className="btn dark" onClick={invite} disabled={busy || (!f.phone && !f.email)}>Add staff</button></div>
+        <div><button className="btn dark" onClick={invite} disabled={busy || !/^\S+@\S+\.\S+$/.test(f.email)}>Add staff</button></div>
       </section>
 
       <section className="card flush table-wrap">
@@ -186,7 +185,7 @@ function StaffTab() {
           <tbody>
             {data!.people.map((p) => (
               <tr key={p.id}>
-                <td><b>{p.full_name || p.email || (p.phone ? showPhone(p.phone) : 'Unnamed')}</b><span className="sub">{[p.email, p.phone && showPhone(p.phone)].filter(Boolean).join(' · ')}</span></td>
+                <td><b>{p.full_name || p.email || 'Unnamed'}</b><span className="sub">{p.email}</span></td>
                 <td>
                   <select className="input" value={p.role} disabled={p.id === profile?.id} aria-label="Role" onChange={(e) => access(p, e.target.value, p.active)}>
                     <option value="owner">Owner</option><option value="receptionist">Receptionist</option><option value="none">No access</option>
@@ -198,7 +197,7 @@ function StaffTab() {
             ))}
             {data!.invites.map((i) => (
               <tr key={i.id}>
-                <td><b>{i.full_name || 'Invited'}</b><span className="sub">{[i.email, i.phone && showPhone(i.phone)].filter(Boolean).join(' · ')}</span></td>
+                <td><b>{i.full_name || 'Invited'}</b><span className="sub">{i.email ?? ''}</span></td>
                 <td>{i.role === 'owner' ? 'Owner' : 'Receptionist'}</td>
                 <td><span className="badge partial">Not signed in yet</span></td>
                 <td className="actions"><button className="btn sm ghost" onClick={() => rpc('remove_invite', { p_invite: i.id }).then(reload).catch((e) => toast(errMsg(e), 'error'))}>Remove</button></td>
@@ -318,7 +317,6 @@ function AccountTab() {
       <dl className="kv">
         <dt>Name</dt><dd>{profile?.full_name || '—'}</dd>
         <dt>Role</dt><dd>{profile?.role === 'owner' ? 'Owner' : 'Receptionist'}</dd>
-        <dt>Mobile</dt><dd>{profile?.phone ? showPhone(profile.phone) : '—'}</dd>
         <dt>Email</dt><dd>{profile?.email || session?.user.email || '—'}</dd>
       </dl>
       <div><button className="btn" onClick={signOut}>Log out</button></div>

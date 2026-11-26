@@ -1,7 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { errMsg } from '../lib/api'
-import { cleanPhone, validPhone } from '../lib/format'
 import { Field, ErrorBox } from '../components/ui'
 import { PillarMark } from '../components/icons'
 import { useAuth } from '../auth'
@@ -27,82 +26,20 @@ function Art() {
   )
 }
 
-type Mode = 'phone' | 'email'
 type EmailMode = 'login' | 'signup' | 'forgot'
 
 export default function Login() {
-  const [mode, setMode] = useState<Mode>('phone')
   return (
     <div className="login">
       <Art />
       <section className="login-form">
         <div className="login-card">
           <h2>Log in</h2>
-          <div className="seg" role="group" aria-label="Login method">
-            <button type="button" aria-pressed={mode === 'phone'} onClick={() => setMode('phone')}>Mobile number</button>
-            <button type="button" aria-pressed={mode === 'email'} onClick={() => setMode('email')}>Email</button>
-          </div>
-          {mode === 'phone' ? <PhoneLogin /> : <EmailLogin />}
+          <EmailLogin />
           <p className="muted sm-text">Only people added by the owner can use this app. Gym members never need to log in.</p>
         </div>
       </section>
     </div>
-  )
-}
-
-function PhoneLogin() {
-  const [phone, setPhone] = useState('')
-  const [code, setCode] = useState('')
-  const [sent, setSent] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState<string | null>(null)
-
-  async function send(e?: FormEvent) {
-    e?.preventDefault()
-    if (!validPhone(phone)) return setErr('Enter a valid 10 digit mobile number.')
-    setBusy(true); setErr(null)
-    const { error } = await supabase.auth.signInWithOtp({ phone: '+91' + phone })
-    setBusy(false)
-    if (error) {
-      setErr(/provider|sms|unsupported|not enabled/i.test(error.message)
-        ? 'OTP login is not switched on yet. Use Email for now, or ask the owner to finish README step 2.'
-        : errMsg(error))
-      return
-    }
-    setSent(true)
-  }
-  async function verify(e: FormEvent) {
-    e.preventDefault()
-    if (code.length < 4) return setErr('Enter the OTP you received by SMS.')
-    setBusy(true); setErr(null)
-    const { error } = await supabase.auth.verifyOtp({ phone: '+91' + phone, token: code, type: 'sms' })
-    setBusy(false)
-    if (error) setErr('That OTP is wrong or has expired. Check the code or send a new one.')
-  }
-
-  if (!sent) {
-    return (
-      <form className="stack" onSubmit={send}>
-        <Field label="Mobile number" error={err && !sent ? err : null}>
-          <div className="phone-wrap">
-            <span className="cc">+91</span>
-            <input className="input" inputMode="numeric" autoComplete="tel-national" value={phone} onChange={(e) => setPhone(cleanPhone(e.target.value))} placeholder="98765 43210" />
-          </div>
-        </Field>
-        <button className="btn primary block" disabled={busy}>{busy ? 'Sending…' : 'Send OTP'}</button>
-      </form>
-    )
-  }
-  return (
-    <form className="stack" onSubmit={verify}>
-      <p className="muted">We sent an OTP to <b>+91 {phone}</b>.</p>
-      <Field label="OTP" error={err}>
-        <input className="input otp" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} autoFocus />
-      </Field>
-      <button className="btn primary block" disabled={busy}>{busy ? 'Checking…' : 'Verify and log in'}</button>
-      <button type="button" className="linkbtn" onClick={() => { setSent(false); setCode(''); setErr(null) }}>Use a different number</button>
-      <button type="button" className="linkbtn" onClick={() => send()} disabled={busy}>Send the OTP again</button>
-    </form>
   )
 }
 

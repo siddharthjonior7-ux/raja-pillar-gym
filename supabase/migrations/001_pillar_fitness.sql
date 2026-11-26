@@ -828,9 +828,9 @@ grant execute on function
   public.dashboard_stats(), public.revenue_by_month(int), public.reports_summary(int, int)
   to authenticated;
 
--- The owner: Raja Pillar. Signing in with this mobile number makes him the owner.
--- (To also allow email login, run the line in README step 3.)
-insert into public.staff_invites (full_name, phone, role) values ('Raja Pillar', '8319917857', 'owner');
+-- The first owner must be approved by email. Run this once with the owner's real email,
+-- then that person creates an account in the app with the same email:
+--   insert into public.staff_invites (full_name, email, role) values ('Owner name', 'owner@example.com', 'owner');
 
 -- Hardening applied after Supabase's security check: fixed search paths on helper functions.
 alter function public.gym_today() set search_path = public;

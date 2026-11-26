@@ -9,7 +9,7 @@ This project uses **its own Supabase project** (organisation "raja pillar"). It 
 - The database (tables, security rules, payment functions) is installed in the Supabase project.
 - `.env` already holds that project's URL and **public** key. The public key is safe in the app; access is controlled by the database security rules.
 - Plans loaded: 1 Month ₹1,000 and 3 Months ₹2,500 (men and women). Add 6 or 12 months in Settings > Prices and plans.
-- Raja Pillar's mobile **8319917857** is pre-approved as **Owner**.
+- The first owner is approved by **email** (see step 2). Nobody else can get in until the owner adds them.
 
 ## 1. Run it
 ```
@@ -19,23 +19,18 @@ npm run build      # production build in /dist
 ```
 
 ## 2. Make login work (do this first)
-Open Supabase dashboard > **Authentication**.
+Login is **email and password only**. There is no SMS or phone login, so nothing extra to pay for.
 
-**Email login (works immediately).**
-1. Providers > Email is on by default. For a quick start, turn **Confirm email** off; otherwise each person must click a link in their inbox first.
-2. The owner is pre-approved by *mobile number only*. To let him use email, run this once in **SQL Editor** (put his real email):
+1. Supabase dashboard > **Authentication** > Providers > **Email**. For a quick start turn **Confirm email** off; otherwise each person must click a link in their inbox first.
+2. Approve the first owner. In **SQL Editor** run this once with the owner's real email:
    ```sql
-   insert into public.staff_invites (full_name, email, role) values ('Raja Pillar', 'owner@example.com', 'owner');
+   insert into public.staff_invites (full_name, email, role) values ('Owner name', 'owner@example.com', 'owner');
    ```
-3. Open the app > Log in > Email > "New here? Create an account" using that email.
-
-**Mobile OTP login (needs an SMS service, which has a cost).**
-Supabase cannot send SMS by itself. Under Authentication > Providers > **Phone**, switch it on and connect an SMS provider (Twilio, MessageBird, Vonage or TextLocal). In India, SMS also needs DLT registration with the provider. Until this is done, the "Send OTP" button shows a message telling the user to use Email.
-
-**Reset links.** Authentication > URL Configuration: set **Site URL** to your live address once deployed.
+3. Open the app > **New here? Create an account** using that same email and a password of 8+ characters. He lands in the app as owner.
+4. **Reset links:** Authentication > URL Configuration: set **Site URL** to your live address once deployed.
 
 ## 3. Add staff
-Owner logs in > Settings > Staff > enter the receptionist's mobile or email > Add staff. They then sign in with that mobile or email. Anyone not added gets "Waiting for access" and sees no data.
+Owner logs in > Settings > Staff > enter the receptionist's email > Add staff. They then create an account with that email. Anyone not added gets "Waiting for access" and sees no data.
 
 ## 4. Put it online
 Any static host works. Vercel: import the repo, add the two variables from `.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`), deploy. `vercel.json` and `public/_redirects` (Netlify) are included.

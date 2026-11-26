@@ -54,7 +54,7 @@ function Shell() {
           <button onClick={signOut} style={{ marginTop: 'auto' }}><Icon name="logout" /> Log out</button>
         </nav>
         <div className="side-foot">
-          <b>{profile?.full_name || profile?.email || (profile?.phone ? '+91 ' + profile.phone : 'Signed in')}</b>
+          <b>{profile?.full_name || profile?.email || 'Signed in'}</b>
           {profile?.role === 'owner' ? 'Owner' : 'Receptionist'}
         </div>
       </aside>
@@ -88,8 +88,8 @@ function NoAccess() {
         <PillarMark size={52} />
         <h2>Waiting for access</h2>
         <p className="muted">
-          You are signed in as <b>{profile?.email || (profile?.phone ? '+91 ' + profile.phone : session?.user.email)}</b>, but the owner has not given this
-          account access yet. Ask the gym owner to add your mobile number or email under Settings, then sign in again.
+          You are signed in as <b>{profile?.email || session?.user.email}</b>, but the owner has not given this
+          account access yet. Ask the gym owner to add your email under Settings, then sign in again.
         </p>
         <button className="btn dark" onClick={signOut}>Log out</button>
       </div>

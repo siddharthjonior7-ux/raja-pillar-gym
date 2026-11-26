@@ -27,9 +27,10 @@ await db.exec(readFileSync(new URL('../supabase/migrations/001_pillar_fitness.sq
 console.log('migration applied')
 
 // ---- people
-const owner = (await q(`insert into auth.users (phone) values ('918319917857') returning id`))[0].id
+await q(`insert into staff_invites (full_name, email, role) values ('Owner', 'owner@example.com', 'owner')`)
+const owner = (await q(`insert into auth.users (email) values ('owner@example.com') returning id`))[0].id
 const stranger = (await q(`insert into auth.users (email) values ('random@example.com') returning id`))[0].id
-ok('invited owner mobile becomes owner', (await q(`select role from profiles where id=$1`, [owner]))[0].role === 'owner')
+ok('invited owner email becomes owner', (await q(`select role from profiles where id=$1`, [owner]))[0].role === 'owner')
 ok('uninvited sign-up gets no role', (await q(`select role from profiles where id=$1`, [stranger]))[0].role === 'none')
 
 await as(owner, () => rpc('invite_staff', ['Desk', 'desk@example.com', null, 'receptionist']))
